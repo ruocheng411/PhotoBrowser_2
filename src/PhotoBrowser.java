@@ -47,7 +47,7 @@ public class PhotoBrowser extends JFrame{
 
 	String message = new String("");
 	JScrollPane scrollPane;
-	PhotoComponent photoComponent = new PhotoComponent();
+	PhotoComponent photoComponent = new PhotoComponent(this);
 
 	public PhotoBrowser() {
 		// TODO Auto-generated constructor stub
@@ -210,7 +210,7 @@ public class PhotoBrowser extends JFrame{
 		statusPanel.add(statusLabel, BorderLayout.WEST);
 	}
 
-	private void setStatusMes(String message){
+	public void setStatusMes(String message){
 		statusLabel.setText(" Status : " + message);
 	}
 

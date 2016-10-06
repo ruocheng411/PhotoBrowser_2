@@ -1,6 +1,12 @@
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.RenderingHints;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -11,7 +17,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 
 
-public class PhotoComponent extends JComponent{
+public class PhotoComponent extends JComponent implements MouseListener{
 
 	BufferedImage image = null;
 	int parentSizex;
@@ -23,9 +29,12 @@ public class PhotoComponent extends JComponent{
 	ArrayList<Photo> photoList = new ArrayList<Photo>();;
 	Boolean flipped = false;
 	public File backgroundPath = FileSystems.getDefault().getPath("image", "background.jpg").toFile();
-
-	public PhotoComponent() {
+	PhotoBrowser photoBrowser = null;
+	int index;
+	
+	public PhotoComponent(PhotoBrowser pb) {
 		// TODO Auto-generated constructor stub
+		photoBrowser = pb;
 		try{
 			background = ImageIO.read(backgroundPath);
 			revalidate();
@@ -37,6 +46,9 @@ public class PhotoComponent extends JComponent{
 		offsetx = 0;
 		offsety = 0;
 		photoIndexCurrent = -1;
+//		addMouseListener(this);
+		addMouseListener(new PhotoComponentMouseAdapter(this,photoBrowser));
+		
 		revalidate();
 		repaint();
 	}
@@ -94,18 +106,20 @@ public class PhotoComponent extends JComponent{
 		if (photoIndexCurrent>-1) {
 			if(photoIndexCurrent<=photoList.size()-1){
 				photoList.remove(photoIndexCurrent);
+				photoBrowser.setStatusMes(" photo "+photoIndexCurrent+" has been deleted");
 				photoIndexCurrent --;
+				if(photoIndexCurrent>=0){
+					photoList.get(photoIndexCurrent).loadPhoto();
+				}
 				init();
-
 			}else {
 				System.out.println("photo choose error");
 			}
-			System.out.println("Opened photo number "+photoList.size());
+			System.out.println("Opened photo number "+photoList.size());			
 		}else {
 			System.out.println("There is no photo.");
 		}
 	}
-
 
 	public void addPhotos(File[] paths) {
 		// TODO Auto-generated method stub
@@ -116,6 +130,7 @@ public class PhotoComponent extends JComponent{
 		photoIndexCurrent = photoList.size()-1;
 		loadPhoto(photoIndexCurrent);
 		init();
+		photoBrowser.setStatusMes(photoList.size()+" photo(s) has been opened");
 	}
 
 	public void loadPhoto(int index) {
@@ -135,11 +150,16 @@ public class PhotoComponent extends JComponent{
 		paintBackground(graphics);
 		if(photoIndexCurrent>-1){
 			image = photoList.get(photoIndexCurrent).img;
-			if (image != null) {
+			if ((image != null)&&(flipped == false))  {
 				paintPhoto(graphics);
+			}
+			if ((image != null)&&flipped) {
+				System.out.println("flipped the photo");
+				paintPhotoBack(graphics);
 			}
 		}
 	}  
+	
 	private void paintBackground(Graphics graphics){
 		graphics.drawImage(background, 0, 0, null);
 	}
@@ -155,5 +175,64 @@ public class PhotoComponent extends JComponent{
 		}  
 		g.drawImage(image, x, y, image.getWidth(null), image.getHeight(null),null); 
 	}
+	
+	private void paintPhotoBack(Graphics graphics) { 
+		super.paintComponent(graphics);
+		int x = offsetx;  
+		int y = offsety;  
+		photoList.get(photoIndexCurrent).imgBack = (BufferedImage) createImage(image.getWidth(),image.getHeight());
+		Graphics2D g2d = (Graphics2D) photoList.get(photoIndexCurrent).imgBack.getGraphics();  
+		g2d.setColor(Color.white);
+		g2d.fillRect(x, y, image.getWidth(), image.getHeight());
+		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);		
+		
+		int j = 0;
+		while (j <= index) {
+			draw(g2d, itemList[j]);
+			j++;
+		}
+		g.drawImage(image2, 0, 0, null);
 
+		
+		graphics.drawImage(photoList.get(photoIndexCurrent).imgBack, x, y, null); 
+
+	}
+
+	public void name() {
+		
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		// TODO Auto-generated method stub
+		if(e.getClickCount()==2){
+//			flipped = true;
+//			System.out.println("Mouse double clicked");
+		}
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
 }

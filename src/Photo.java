@@ -7,6 +7,7 @@ import javax.imageio.ImageIO;
 public class Photo {
 	public File filePath;
 	public BufferedImage img;
+	public BufferedImage imgBack;
 	
 	public Photo(File path) {
 		// TODO Auto-generated constructor stub
