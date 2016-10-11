@@ -1,5 +1,8 @@
+import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -14,10 +17,13 @@ import java.nio.file.FileSystems;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
+import javax.swing.JColorChooser;
 import javax.swing.JComponent;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 
-public class PhotoComponent extends JComponent implements MouseListener{
+public class PhotoComponent extends JComponent {
 
 	BufferedImage image = null;
 	int parentSizex;
@@ -30,8 +36,20 @@ public class PhotoComponent extends JComponent implements MouseListener{
 	Boolean flipped = false;
 	public File backgroundPath = FileSystems.getDefault().getPath("image", "background.jpg").toFile();
 	PhotoBrowser photoBrowser = null;
+
+//	Drawing[] strokeList = new Drawing[5000];
+	ArrayList<Drawing> strokeList = new ArrayList<Drawing>();
+	Drawing stroke;
+	int currentChoice;
 	int index;
+	Color colorDefault = Color.black;
+	Color color;
+	int R,G,B;
+	float thickness = 1.0f;
 	
+	int textPosition;
+
+
 	public PhotoComponent(PhotoBrowser pb) {
 		// TODO Auto-generated constructor stub
 		photoBrowser = pb;
@@ -46,9 +64,13 @@ public class PhotoComponent extends JComponent implements MouseListener{
 		offsetx = 0;
 		offsety = 0;
 		photoIndexCurrent = -1;
-//		addMouseListener(this);
-		addMouseListener(new PhotoComponentMouseAdapter(this,photoBrowser));
-		
+		//		addMouseListener(this);
+		PhotoMouseAdapter adapter = new PhotoMouseAdapter(this,photoBrowser);
+		addMouseListener(adapter);
+		addMouseMotionListener(adapter);
+		addKeyListener(new PhotoKeyAdapter(this,photoBrowser));
+		setFocusable(true);
+
 		revalidate();
 		repaint();
 	}
@@ -154,12 +176,11 @@ public class PhotoComponent extends JComponent implements MouseListener{
 				paintPhoto(graphics);
 			}
 			if ((image != null)&&flipped) {
-				System.out.println("flipped the photo");
 				paintPhotoBack(graphics);
 			}
 		}
 	}  
-	
+
 	private void paintBackground(Graphics graphics){
 		graphics.drawImage(background, 0, 0, null);
 	}
@@ -175,7 +196,7 @@ public class PhotoComponent extends JComponent implements MouseListener{
 		}  
 		g.drawImage(image, x, y, image.getWidth(null), image.getHeight(null),null); 
 	}
-	
+
 	private void paintPhotoBack(Graphics graphics) { 
 		super.paintComponent(graphics);
 		int x = offsetx;  
@@ -185,54 +206,134 @@ public class PhotoComponent extends JComponent implements MouseListener{
 		g2d.setColor(Color.white);
 		g2d.fillRect(x, y, image.getWidth(), image.getHeight());
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);		
-		
-		int j = 0;
-		while (j <= index) {
-			draw(g2d, itemList[j]);
-			j++;
-		}
-		g.drawImage(image2, 0, 0, null);
 
-		
+		int j = 0;
+		while (j < index) {
+			draw(g2d,strokeList.get(j));
+//			strokeList[j].draw(g2d);
+			j++;
+
+		}
+
 		graphics.drawImage(photoList.get(photoIndexCurrent).imgBack, x, y, null); 
 
 	}
 
-	public void name() {
-		
+	public void draw(Graphics2D g2d, Drawing i) {
+		i.draw(g2d);
 	}
+	
 
-	@Override
-	public void mouseClicked(MouseEvent e) {
-		// TODO Auto-generated method stub
-		if(e.getClickCount()==2){
-//			flipped = true;
-//			System.out.println("Mouse double clicked");
+	public void setDrawChoice(int i){
+		currentChoice = i;
+		if ((i>=0)&&(i<6)) {
+//			createNewDraw();
+			setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));// mouse change to cross
+
+		}else if (i==7) {
+//			createNewText();
+			setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));	
+		}else {
+			setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		}
+	}
+
+	//BasicStroke
+
+
+
+	public void chooseColor() {
+		setDrawChoice(8);
+		color = JColorChooser.showDialog(photoBrowser, "Color", colorDefault);
+		System.out.println(R+G+B);
+		try {
+			R = color.getRed();
+			G = color.getGreen();
+			B = color.getBlue();
+			System.out.println(R+","+G+","+B);
+
+		} catch (Exception e) {
+			// TODO: handle exception
+			R = 0;
+			G = 0;
+			B = 0;
+		}
+//			strokeList[index].R = R;
+//			strokeList[index].G = G;
+//			strokeList[index].B = B;
+	}
+
+	public void setThickness() {
+		currentChoice = 9;
+		String input;
+		input = JOptionPane.showInputDialog("Please set the thickness of pen (>0)");
+		try {
+			thickness = Float.parseFloat(input);
+		} catch (Exception e) {
+			// TODO: handle exception
+			thickness = 1.0f;
+			System.out.println(e);
+		}
+			stroke.thickness =thickness;
 		
 	}
 
-	@Override
-	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
+	
+	
+	public void createNewDraw() {
+
+		if (flipped) {
+			setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));// mouse change to cross
+			switch (currentChoice) {
+			case 0:
+				stroke = new Line();
+				break;
+			case 1:
+				stroke = new Rect();
+				break;
+			case 2:
+				stroke = new Circle();
+				break;
+			case 3:
+				stroke = new Oval();
+				break;
+			case 4:
+				stroke = new RoundRect();
+				break;
+			case 5:
+				stroke = new Pencil();
+				break;
+			case 6:
+				stroke = new Erase();
+				break;
+			case 7:
+				setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));	
+				stroke = new Text(photoList.get(photoIndexCurrent).imgBack.getWidth(),photoList.get(photoIndexCurrent).imgBack.getHeight());
+			default:
+				break;
+			}
+			repaint();
+		}
+	}
+
+//	public void createNewText() {
+//		if(flipped){
+//			setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));	
+//			stroke = new Text();
+//		}else {
+//			setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+//		}
+//		repaint();
+//	}
+	
+	public void updateStrokeParameters() {
+		stroke.R = R;
+		stroke.G = G;
+		stroke.B = B;
+		stroke.type = currentChoice;
+		stroke.thickness = thickness;
+		repaint();
 		
 	}
 
-	@Override
-	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
 }

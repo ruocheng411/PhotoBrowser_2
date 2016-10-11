@@ -1,13 +1,21 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Event;
+import java.awt.Graphics;
 import java.awt.Toolkit;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -48,7 +56,16 @@ public class PhotoBrowser extends JFrame{
 	String message = new String("");
 	JScrollPane scrollPane;
 	PhotoComponent photoComponent = new PhotoComponent(this);
-
+	JToolBar imageToolBar = new JToolBar();
+	String imageTools[] = { "line", "rect",  "circle", "oval", 
+			"roundrect", "pen","erase","text","color", "stroke" };
+	String tipText[] = { "Line", "Rect",  "Circle", "Oval", 
+			"Roundrect", "Pen","Erase","Text","Color", "Thinck" };
+	JToggleButton[] imageButtons;
+	int[] toolIndex = {1,2,3,4,5,6,7,8,9};
+	ButtonGroup group = new ButtonGroup();
+	
+	
 	public PhotoBrowser() {
 		// TODO Auto-generated constructor stub
 		super("Photo Browser");
@@ -61,6 +78,7 @@ public class PhotoBrowser extends JFrame{
 		setMenu();
 		setMainArea();
 		setToolbar();
+		setImageTools();
 		setVisible(true);
 		validate();
 		pack();	
@@ -83,7 +101,7 @@ public class PhotoBrowser extends JFrame{
 		add(photoPanel, BorderLayout.CENTER);
 		setScrollPane();
 		//		photoPanel.add(scrollPane);
-		
+
 
 
 
@@ -151,8 +169,8 @@ public class PhotoBrowser extends JFrame{
 			System.out.println("scrollpane size "+scrollPane.getSize());
 			System.out.println("photopanel size "+photoPanel.getSize());
 			photoPanel.add(scrollPane,BorderLayout.CENTER);
-//			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-//			scrollPane.setPreferredSize(screenSize);
+			//			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+			//			scrollPane.setPreferredSize(screenSize);
 			repaint();
 			validate();
 		}
@@ -258,6 +276,73 @@ public class PhotoBrowser extends JFrame{
 		PhotoBrowser myBrowser = new PhotoBrowser();
 	}
 
+	public void setImageTools(){
+		System.out.println("show image button");
+		initImageTools();		
+		imageToolBar.setVisible(false);
+		photoPanel.add(imageToolBar,BorderLayout.NORTH);
+	}
+
+	public void initImageTools() {
+		try{
+			Reader reader = new InputStreamReader(getClass().getResourceAsStream("/image/icon"));
+			System.out.println(reader);
+		}catch (Exception e) {
+			// TODO: handle exception
+			setStatusMes("File error "+e.getMessage());
+		}
+		imageButtons = new JToggleButton[imageTools.length];
+		Dimension maximumSize = new Dimension(60, 40);
+		Dimension minimumSize = new Dimension(60, 20);
+		for(int i=0; i<imageTools.length;i++ ){
+			ImageIcon icon = new ImageIcon(("image/icon/"+imageTools[i]+".jpg"));
+			imageButtons[i] = new JToggleButton("",icon);
+			imageButtons[i].setToolTipText(tipText[i]);
+			imageButtons[i].setMaximumSize(maximumSize);
+			imageButtons[i].setMinimumSize(minimumSize);
+			
+			switch (i) {
+			case 0:
+				imageButtons[0].addActionListener(Event->{photoComponent.setDrawChoice(0);setStatusMes(tipText[0]);});
+				break;
+			case 1:
+				imageButtons[1].addActionListener(Event->{photoComponent.setDrawChoice(1);setStatusMes(tipText[1]);});
+				break;
+			case 2:
+				imageButtons[2].addActionListener(Event->{photoComponent.setDrawChoice(2);setStatusMes(tipText[2]);});
+				break;
+			case 3:
+				imageButtons[3].addActionListener(Event->{photoComponent.setDrawChoice(3);setStatusMes(tipText[3]);});
+				break;
+			case 4:
+				imageButtons[4].addActionListener(Event->{photoComponent.setDrawChoice(4);setStatusMes(tipText[4]);});
+				break;
+			case 5:
+				imageButtons[5].addActionListener(Event->{photoComponent.setDrawChoice(5);setStatusMes(tipText[5]);});
+				break;
+			case 6:
+				imageButtons[6].addActionListener(Event->{photoComponent.setDrawChoice(6);setStatusMes(tipText[6]);});
+				break;
+			case 7:
+				imageButtons[7].addActionListener(Event->{photoComponent.setDrawChoice(7);setStatusMes(tipText[7]);});
+				break;
+			case 8:
+				imageButtons[8].addActionListener(Event->{
+					photoComponent.chooseColor();setStatusMes(tipText[8]);});
+				break;
+			case 9:
+				imageButtons[9].addActionListener(Event->{photoComponent.setThickness();setStatusMes(tipText[9]);});
+				break;
+			default:
+				break;
+			}	
+			group.add(imageButtons[i]);
+			imageToolBar.add(imageButtons[i]);
+
+		}
+//		imageToolBar.add(group);
+
+	}
 
 
 }
