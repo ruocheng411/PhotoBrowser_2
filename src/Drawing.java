@@ -24,12 +24,12 @@ public class Drawing implements Serializable{
 }
 
 class Pencil extends Drawing {
-	
+
 	public Pencil() {
 		// TODO Auto-generated constructor stub
 		path2d = new Path2D.Float();
 	}
-	
+
 	void draw(Graphics2D g2d) {
 		g2d.setPaint(new Color(R, G, B));
 		g2d.setStroke(new BasicStroke(thickness, BasicStroke.CAP_ROUND,
@@ -71,22 +71,54 @@ class Text extends Drawing {
 			int stringH = fontMetrics.getHeight();
 			int stringW = fontMetrics.stringWidth(s1);
 			System.out.println(x1 + stringW);
-//			System.out.println(width);
+			//			System.out.println(width);
 
-			int space = width-x1;
+			int space = width-x1-5;
 			String string = s1;
-			int index = 0;
 
 			if(stringW<=space){
-				g2d.drawString(s1, x1, y1);
+				int index = 0;
+				boolean hasTab = false;
+				while (fontMetrics.stringWidth(string)>0) {
+					for(int i=0; i<string.length();i++){
+						hasTab = false;
+						if((string.charAt(i) == '\n')){
+							hasTab = true;
+							String sPrint = string.substring(0, i+1);
+							g2d.drawString(sPrint, x1, y1+stringH*index);
+							string = string.substring(i+1, string.length());
+							System.out.println("press return");
+							index++;
+							break;
+						}
+						//					g2d.drawString(s1, x1, y1);
+					}
+					if(!hasTab){
+						g2d.drawString(string, x1, y1+stringH*index);
+						System.out.println("did not have return");
+						break;
+					}
+				}
 			}else{
-				
-				while (fontMetrics.stringWidth(string)>space) {
+				string = s1;
+				int index = 0;
+				while (fontMetrics.stringWidth(string)> 0) {
 					int pos1 = 0;
 					int pos2 = 0;
-					
-					System.out.println(fontMetrics.stringWidth(string)+" " +string);
-					for(int i=1;i<=string.length();i++){
+					int pos3 = 0;
+
+					System.out.println(fontMetrics.stringWidth(string)+" string " +string);
+					for(int i=0;i<=string.length();i++){
+
+						if((i<string.length())&&(string.charAt(i) == '\n')){
+							//							String sPrint = string.substring(0, i+1);
+							//							g2d.drawString(sPrint, x1, y1+stringH*index);
+							//							string = string.substring(i+1, string.length());
+							pos3 = i;
+							System.out.println("tab or return "+pos3);
+							break;
+						}
+
 						String line = string.substring(0, i);
 						if(fontMetrics.stringWidth(line)>space){
 							while((i<string.length())&&(string.charAt(i)==' ')){
@@ -103,19 +135,27 @@ class Text extends Drawing {
 							break;
 						}
 					}
-					if (pos2 != 0) {
+					if (pos3 != 0) {
+						String sPrint = string.substring(0, pos3+1);
+						g2d.drawString(sPrint, x1, y1+stringH*index);
+						string = string.substring(pos3+1, string.length());
+						index++;
+					}
+					else if (pos2 != 0) {
 						String sPrint = string.substring(0, pos2+1);
 						g2d.drawString(sPrint, x1, y1+stringH*index);
 						string = string.substring(pos2+1, string.length());
 						index++;
-//						System.out.println("pos2 "+sPrint);
+						//						System.out.println("pos2 "+sPrint);
 					}else if(pos1 !=0){
 						String sPrint = string.substring(0,pos1-1);
 						g2d.drawString(sPrint, x1, y1+stringH*index);
 						string = string.substring(pos1-1, string.length());
 						index++;
+					}else {
+						break;
 					}
-					
+
 
 
 				}
