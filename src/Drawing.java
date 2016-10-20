@@ -6,7 +6,6 @@ import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.geom.Path2D;
 import java.io.Serializable;
-import java.util.ArrayList;
 
 public class Drawing implements Serializable{
 	int x1,y1;
